@@ -7,18 +7,16 @@ import (
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/cscareers-dev/cscareers-discord-v2/config"
 	discordHandlers "github.com/cscareers-dev/cscareers-discord-v2/handlers"
-)
-
-const (
-	_botToken = "update"
 )
 
 var session *discordgo.Session
 
 func init() {
 	var err error
-	session, err = discordgo.New("Bot " + _botToken)
+	config := config.Load()
+	session, err = discordgo.New("Bot " + config.Token)
 
 	if err != nil {
 		panic("failed to initalize bot")
