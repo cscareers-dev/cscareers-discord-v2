@@ -13,6 +13,9 @@ var messageCreatePlugins map[string]plugins.Plugin = make(map[string]plugins.Plu
 func init() {
 	resumeMessageChannelPlugin := plugins.NewResumeMessageChannelPlugin()
 	messageCreatePlugins[resumeMessageChannelPlugin.Name()] = resumeMessageChannelPlugin
+
+	banUrlMessagePlugin := plugins.NewBanUrlMessagePlugin()
+	messageCreatePlugins[banUrlMessagePlugin.Name()] = banUrlMessagePlugin
 }
 
 // MessageCreate processes message create events emitted from Discord API
