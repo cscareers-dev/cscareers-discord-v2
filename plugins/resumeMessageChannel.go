@@ -48,7 +48,11 @@ func (r *ResumeMessageChannelPlugin) Execute(session *discordgo.Session, message
 	}
 
 	messageContent := message.Content
-	session.ChannelMessageDelete(message.ChannelID, message.ID)
+	err := session.ChannelMessageDelete(message.ChannelID, message.ID)
+	if err != nil {
+		return false, err
+	}
+
 	privateMessageChannel, err := session.UserChannelCreate(message.Author.ID)
 	if err != nil {
 		return false, err
