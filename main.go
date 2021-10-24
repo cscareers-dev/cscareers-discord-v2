@@ -28,7 +28,7 @@ func init() {
 
 	err = session.Open()
 	if err != nil {
-		panic("cannot open session")
+		panic(err)
 	}
 }
 
