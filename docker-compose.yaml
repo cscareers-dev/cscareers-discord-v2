@@ -1,0 +1,4 @@
+version: '1'
+services:
+  cscareers-discord-v2:
+    build: .
