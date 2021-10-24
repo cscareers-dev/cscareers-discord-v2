@@ -12,8 +12,7 @@ type ResumeMessageChannelPlugin struct{}
 
 const (
 	resumeMessageChannelPlugin = "ResumeMessageChannelPlugin"
-	// TODO(corgi): update with correct channel id
-	resumeMessageChannelId = "761269221001920552"
+	resumeMessageChannelId     = "699532322948513832"
 )
 
 // NewResumeMessageChannelPlugin returns a new ResumeMessageChannelPlugin
@@ -59,7 +58,7 @@ func (r *ResumeMessageChannelPlugin) Execute(session *discordgo.Session, message
 	}
 
 	_, err = session.ChannelMessageSend(privateMessageChannel.ID, fmt.Sprintf(`
-		We only allow messages that have a PDF attached in the resume channel. Your message content:
+		We only allow top level messages that have a PDF attached in the resume channel. Your message content:
 		%s
 	`, messageContent))
 
