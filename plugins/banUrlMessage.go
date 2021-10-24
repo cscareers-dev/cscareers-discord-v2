@@ -3,7 +3,6 @@ package plugins
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
@@ -16,12 +15,12 @@ const (
 	messageDeleteHistoryInDays = 7
 )
 
-// key = regex pattern, value = type of url (phishing url)
+// key = domain, value = type of url (phishing url)
 var bannedUrlPatterns map[string]string = make(map[string]string)
 
 // init initalizes bannedUrlPatterns
 func init() {
-	bannedUrlPatterns["/discordn.gift/"] = "phishing"
+	bannedUrlPatterns["discordn.gift"] = "phishing"
 }
 
 // NewBanUrlMessagePlugin returns a new BanUrlMessagePlugin
@@ -36,9 +35,8 @@ func (b *BanUrlMessagePlugin) Name() string {
 
 // Validate determines if incoming message should be executed by BanUrlMessagePlugin
 func (b *BanUrlMessagePlugin) Validate(session *discordgo.Session, message *discordgo.MessageCreate) bool {
-	for pattern := range bannedUrlPatterns {
-		match, _ := regexp.MatchString(pattern, strings.ToLower(message.Content))
-		if match {
+	for url := range bannedUrlPatterns {
+		if strings.Contains(strings.ToLower(message.Content), url) {
 			return true
 		}
 	}
@@ -49,10 +47,9 @@ func (b *BanUrlMessagePlugin) Validate(session *discordgo.Session, message *disc
 func (b *BanUrlMessagePlugin) Execute(session *discordgo.Session, message *discordgo.MessageCreate) (bool, error) {
 	var reason string
 
-	for pattern := range bannedUrlPatterns {
-		match, _ := regexp.MatchString(pattern, strings.ToLower(message.Content))
-		if match {
-			reason = bannedUrlPatterns[pattern]
+	for url := range bannedUrlPatterns {
+		if strings.Contains(strings.ToLower(message.Content), url) {
+			reason = bannedUrlPatterns[url]
 		}
 	}
 
