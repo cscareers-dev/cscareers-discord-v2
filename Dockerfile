@@ -20,8 +20,7 @@ WORKDIR /app
 
 # Update and install apt dependencies
 RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -q -y \
-    curl \
+    DEBIAN_FRONTEND=noninteractive apt-get install -q - y
 
 # Copy config.json file
 COPY config.json ./
