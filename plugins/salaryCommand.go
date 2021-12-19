@@ -44,12 +44,12 @@ func init() {
 	}
 }
 
-// NewSalaryCommandPlugin returns a new ResumeMessageChannelPlugin
+// NewSalaryCommandPlugin returns a new SalaryCommandPlugin
 func NewSalaryCommandPlugin() *SalaryCommandPlugin {
 	return &SalaryCommandPlugin{}
 }
 
-// Name returns name of ResumeMessageChannelPlugin
+// Name returns name of SalaryCommandPlugin
 func (s *SalaryCommandPlugin) Name() string {
 	return salaryCommandPlugin
 }
