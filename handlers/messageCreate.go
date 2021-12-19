@@ -20,6 +20,9 @@ func init() {
 
 	salaryCommandPlugin := plugins.NewSalaryCommandPlugin()
 	messageCreatePlugins[salaryCommandPlugin.Name()] = salaryCommandPlugin
+
+	processCommandPlugin := plugins.NewProcessCommandPlugin()
+	messageCreatePlugins[processCommandPlugin.Name()] = processCommandPlugin
 }
 
 // MessageCreate processes message create events emitted from Discord API
