@@ -17,6 +17,9 @@ func init() {
 
 	banUrlMessagePlugin := plugins.NewBanUrlMessagePlugin()
 	messageCreatePlugins[banUrlMessagePlugin.Name()] = banUrlMessagePlugin
+
+	salaryCommandPlugin := plugins.NewSalaryCommandPlugin()
+	messageCreatePlugins[salaryCommandPlugin.Name()] = salaryCommandPlugin
 }
 
 // MessageCreate processes message create events emitted from Discord API
