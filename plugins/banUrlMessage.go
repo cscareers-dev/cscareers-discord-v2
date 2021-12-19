@@ -1,6 +1,7 @@
 package plugins
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -33,6 +34,11 @@ func (b *BanUrlMessagePlugin) Name() string {
 	return banUrlMessagePlugin
 }
 
+// Enabled returns if BanUrlMessagePlugin is enabled
+func (b *BanUrlMessagePlugin) Enabled() bool {
+	return true
+}
+
 // Validate determines if incoming message should be executed by BanUrlMessagePlugin
 func (b *BanUrlMessagePlugin) Validate(session *discordgo.Session, message *discordgo.MessageCreate) bool {
 	for url := range bannedUrlPatterns {
@@ -50,7 +56,12 @@ func (b *BanUrlMessagePlugin) Execute(session *discordgo.Session, message *disco
 	for url := range bannedUrlPatterns {
 		if strings.Contains(strings.ToLower(message.Content), url) {
 			reason = bannedUrlPatterns[url]
+			break
 		}
+	}
+
+	if len(reason) == 0 {
+		return false, errors.New("Unable to locate ban reason")
 	}
 
 	privateMessageChannel, err := session.UserChannelCreate(message.Author.ID)

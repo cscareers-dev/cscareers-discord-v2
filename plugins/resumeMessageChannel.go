@@ -2,7 +2,6 @@ package plugins
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
@@ -25,6 +24,13 @@ func (r *ResumeMessageChannelPlugin) Name() string {
 	return resumeMessageChannelPlugin
 }
 
+// Enabled returns if ResumeMessageChannelPlugin is enabled
+func (b *ResumeMessageChannelPlugin) Enabled() bool {
+	// This should be enabled once discordgo adds thread functionality
+	// See https://github.com/bwmarrin/discordgo/pull/1058
+	return false
+}
+
 // Validate determines if incoming message should be executed by ResumeMessageChannelPlugin
 func (r *ResumeMessageChannelPlugin) Validate(session *discordgo.Session, message *discordgo.MessageCreate) bool {
 	return message.ChannelID == resumeMessageChannelId
@@ -32,7 +38,6 @@ func (r *ResumeMessageChannelPlugin) Validate(session *discordgo.Session, messag
 
 // Execute runs ResumeMessageChannelPlugin on incoming message
 func (r *ResumeMessageChannelPlugin) Execute(session *discordgo.Session, message *discordgo.MessageCreate) (bool, error) {
-	log.Println("Executing ResumeMessageChannelPlugin on " + message.ID)
 	hasPDFAttachment := false
 
 	for _, attachment := range message.Attachments {
