@@ -1,11 +1,19 @@
 package plugins
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/bwmarrin/discordgo"
+	discord "github.com/cscareers-dev/cscareers-discord-v2/utils"
 )
 
 type ProcessCommandPlugin struct{}
@@ -30,9 +38,31 @@ var stepsMap map[string]bool
 var companiesMap map[string]bool
 var _lastHydrateTime time.Time
 
+var queue *sqs.SQS
+
 // fetchCompanies fetches companies map from cscareers api and hydrates companies map
 func fetchCompanies() {
+	resp, err := http.Get(COMPANIES_LIST_ENDPOINT)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	var companies []string
+	err = json.Unmarshal(body, &companies)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	for _, company := range companies {
+		companiesMap[company] = true
+	}
 }
 
 // shouldFetchCompanies determines if the companies map cache is stale
@@ -47,6 +77,12 @@ func shouldFetchCompanies() bool {
 
 // init sets up valid steps and hydrates companies map
 func init() {
+	session := session.Must(session.NewSessionWithOptions(session.Options{
+		SharedConfigState: session.SharedConfigEnable,
+	}))
+
+	queue = sqs.New(session)
+
 	// hydrate steps map
 	stepsMap["oa"] = true
 	stepsMap["reject"] = true
@@ -75,7 +111,14 @@ func (p *ProcessCommandPlugin) Enabled() bool {
 // Validate determines if incoming message should be executed by ProcessCommandPlugin
 func (p *ProcessCommandPlugin) Validate(session *discordgo.Session, message *discordgo.MessageCreate) bool {
 	sanitizedMessage := strings.ToLower(message.Content)
-	return strings.HasPrefix(sanitizedMessage, processCommandPrefix)
+	isProcessCommand := strings.HasPrefix(sanitizedMessage, processCommandPrefix)
+	channelName, err := discord.GetMessageChannelName(session, message)
+	if err != nil {
+		return false
+	}
+	isFromProcessChannel := strings.Contains(channelName, "process")
+
+	return isProcessCommand && isFromProcessChannel
 }
 
 // Execute runs ProcessCommandPlugin on incoming message
@@ -103,9 +146,41 @@ func (p *ProcessCommandPlugin) Execute(session *discordgo.Session, message *disc
 		return false, err
 	}
 
-	// TODO:
-	// - submit to queue
-	// - react to sender's message
+	channelName, err := discord.GetMessageChannelName(session, message)
+	if err != nil {
+		return false, err
+	}
+
+	_, err = queue.SendMessage(&sqs.SendMessageInput{
+		MessageGroupId:         aws.String("1"),
+		MessageDeduplicationId: aws.String(message.ID),
+		MessageAttributes: map[string]*sqs.MessageAttributeValue{
+			"channel": {
+				DataType:    aws.String("String"),
+				StringValue: aws.String(channelName),
+			},
+			"company": {
+				DataType:    aws.String("String"),
+				StringValue: aws.String(canonicalCompanyName),
+			},
+			"status": {
+				DataType:    aws.String("String"),
+				StringValue: aws.String(strings.ToUpper(step)),
+			},
+			"discordId": {
+				DataType:    aws.String("String"),
+				StringValue: aws.String(message.Author.ID),
+			},
+		},
+	})
+
+	if err != nil {
+		return false, err
+	}
+
+	if err = session.MessageReactionAdd(message.ChannelID, message.ID, "✅"); err != nil {
+		return false, err
+	}
 
 	return true, nil
 }
